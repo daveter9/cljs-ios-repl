@@ -7,151 +7,167 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="CLJS REPL">
   <meta name="theme-color" content="#1a1a1a">
-  <title>ClojureScript REPL</title>
+  <title>ClojureScript REPL — DEBUG</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
-      height: 100%;
-      background: #1a1a1a;
-      color: #e0e0e0;
+      height: 100%; background: #1a1a1a; color: #e0e0e0;
       font-family: 'SF Mono', Menlo, Monaco, monospace;
-      font-size: 14px;
-      overflow: hidden;
+      font-size: 13px; overflow: hidden;
       -webkit-text-size-adjust: 100%;
     }
     body {
-      display: flex;
-      flex-direction: column;
+      display: flex; flex-direction: column;
       padding-top: env(safe-area-inset-top);
       padding-bottom: env(safe-area-inset-bottom);
       padding-left: env(safe-area-inset-left);
       padding-right: env(safe-area-inset-right);
     }
     header {
-      background: #0f0f0f;
-      padding: 12px 16px;
+      background: #0f0f0f; padding: 10px 14px;
       border-bottom: 1px solid #333;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      display: flex; justify-content: space-between; align-items: center;
       flex-shrink: 0;
     }
-    header h1 { font-size: 14px; color: #5fb3b3; font-weight: 500; }
+    header h1 { font-size: 13px; color: #e5b373; font-weight: 500; }
     header .actions { display: flex; gap: 6px; align-items: center; }
     header button {
       background: #2a2a2a; color: #e0e0e0; border: 1px solid #444;
-      padding: 6px 12px; border-radius: 6px;
-      font-family: inherit; font-size: 12px; cursor: pointer;
+      padding: 5px 10px; border-radius: 6px;
+      font-family: inherit; font-size: 11px;
     }
-    header button:active { background: #3a3a3a; }
     #status {
       font-size: 10px; padding: 2px 8px; border-radius: 10px; background: #2a2a2a;
     }
     #status.online { background: #2a4a2a; color: #a3d977; }
     #status.offline { background: #4a3a2a; color: #e5b373; }
     #status.cached { background: #2a3a4a; color: #7db3e5; }
-    #output {
-      flex: 1; overflow-y: auto; padding: 12px 16px;
+
+    .panel-header {
+      background: #151515; color: #888;
+      padding: 6px 14px; font-size: 10px;
+      text-transform: uppercase; letter-spacing: 1px;
+      border-bottom: 1px solid #222; flex-shrink: 0;
+    }
+
+    #output, #debug {
+      overflow-y: auto; padding: 10px 14px;
       -webkit-overflow-scrolling: touch;
       white-space: pre-wrap; word-wrap: break-word;
     }
-    .line { margin-bottom: 4px; line-height: 1.5; }
+    #output { flex: 2; min-height: 100px; }
+    #debug {
+      flex: 1; background: #0a0a0a;
+      border-top: 1px solid #333;
+      font-size: 11px; min-height: 120px;
+    }
+
+    .line { margin-bottom: 3px; line-height: 1.4; }
     .input-line { color: #e0e0e0; }
     .result { color: #a3d977; }
     .error { color: #e57373; white-space: pre-wrap; }
     .info { color: #888; font-style: italic; }
+
+    .dbg-line { margin-bottom: 2px; line-height: 1.4; font-size: 10px; }
+    .dbg-info { color: #7db3e5; }
+    .dbg-ok { color: #a3d977; }
+    .dbg-warn { color: #e5b373; }
+    .dbg-err { color: #e57373; }
+    .dbg-time { color: #555; margin-right: 4px; }
+
     #input-area {
       background: #0f0f0f; border-top: 1px solid #333;
-      padding: 8px; flex-shrink: 0;
-      display: flex; gap: 8px; align-items: flex-end;
+      padding: 6px; flex-shrink: 0;
+      display: flex; gap: 6px; align-items: flex-end;
     }
     #input {
       flex: 1; background: #1a1a1a; color: #e0e0e0;
       border: 1px solid #333; border-radius: 6px;
-      padding: 8px 10px;
-      font-family: inherit; font-size: 14px;
-      resize: none; min-height: 38px; max-height: 140px; outline: none;
+      padding: 7px 9px;
+      font-family: inherit; font-size: 13px;
+      resize: none; min-height: 34px; max-height: 120px; outline: none;
     }
     #input:focus { border-color: #5fb3b3; }
     #run {
       background: #5fb3b3; color: #0f0f0f; border: none;
-      padding: 0 16px; height: 38px; border-radius: 6px;
-      font-family: inherit; font-size: 14px; font-weight: 600;
-      cursor: pointer; flex-shrink: 0;
+      padding: 0 14px; height: 34px; border-radius: 6px;
+      font-family: inherit; font-size: 13px; font-weight: 600;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: rgba(95,179,179,0.3);
+      touch-action: manipulation;
     }
     #run:active { background: #4a9a9a; }
     .toolbar {
-      display: flex; gap: 6px; overflow-x: auto;
-      padding: 6px 12px;
+      display: flex; gap: 5px; overflow-x: auto;
+      padding: 5px 10px;
       background: #151515; border-bottom: 1px solid #222;
       flex-shrink: 0;
-      -webkit-overflow-scrolling: touch; scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
     }
-    .toolbar::-webkit-scrollbar { display: none; }
     .toolbar button {
       background: #2a2a2a; color: #bbb; border: 1px solid #333;
-      padding: 5px 10px; border-radius: 4px;
-      font-family: inherit; font-size: 11px;
-      white-space: nowrap; cursor: pointer;
+      padding: 4px 8px; border-radius: 4px;
+      font-family: inherit; font-size: 10px;
+      white-space: nowrap;
     }
-    .toolbar button:active { background: #3a3a3a; }
 
-    /* Init screen */
     #init {
       position: fixed; inset: 0; background: #1a1a1a;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      padding: 24px; z-index: 100; text-align: center;
+      padding: 20px; z-index: 100; text-align: center;
     }
-    #init .lambda {
-      font-size: 64px; color: #5fb3b3;
-      margin-bottom: 16px; line-height: 1;
-    }
-    #init h2 {
-      color: #e0e0e0; font-size: 18px; font-weight: 500; margin-bottom: 8px;
-    }
+    #init .lambda { font-size: 56px; color: #5fb3b3; margin-bottom: 14px; }
+    #init h2 { color: #e0e0e0; font-size: 16px; margin-bottom: 8px; }
     #init .subtitle {
-      color: #888; font-size: 13px; margin-bottom: 32px;
-      max-width: 320px; line-height: 1.5;
+      color: #888; font-size: 12px; margin-bottom: 24px;
+      max-width: 300px; line-height: 1.5;
     }
-    #init .stage {
-      color: #5fb3b3; font-size: 13px; margin-bottom: 12px; min-height: 18px;
-    }
+    #init .stage { color: #5fb3b3; font-size: 12px; margin-bottom: 10px; min-height: 18px; }
     #progress-wrap {
-      width: 100%; max-width: 320px; height: 6px;
+      width: 100%; max-width: 300px; height: 6px;
       background: #2a2a2a; border-radius: 3px;
-      overflow: hidden; margin-bottom: 12px;
+      overflow: hidden; margin-bottom: 10px;
     }
     #progress {
       height: 100%; width: 0%; background: #5fb3b3;
       transition: width 0.2s ease;
     }
-    #progress-text {
-      color: #666; font-size: 11px; min-height: 14px;
-    }
+    #progress-text { color: #666; font-size: 10px; min-height: 14px; }
     #init .error-box {
-      display: none;
-      background: #3a1a1a; border: 1px solid #6a2a2a;
-      color: #e57373; padding: 12px 16px; border-radius: 8px;
-      margin-top: 16px; max-width: 320px;
-      font-size: 12px; line-height: 1.5; text-align: left;
+      display: none; background: #3a1a1a; border: 1px solid #6a2a2a;
+      color: #e57373; padding: 10px 14px; border-radius: 8px;
+      margin-top: 14px; max-width: 300px;
+      font-size: 11px; line-height: 1.5; text-align: left;
     }
     #init #retry {
-      display: none; margin-top: 12px;
+      display: none; margin-top: 10px;
       background: #5fb3b3; color: #0f0f0f; border: none;
-      padding: 10px 20px; border-radius: 6px;
-      font-family: inherit; font-size: 13px; font-weight: 600;
-      cursor: pointer;
+      padding: 9px 18px; border-radius: 6px;
+      font-size: 12px; font-weight: 600;
+    }
+
+    #debug-controls {
+      display: flex; gap: 4px;
+      padding: 4px 14px;
+      background: #0a0a0a;
+      border-top: 1px solid #222;
+      flex-shrink: 0;
+    }
+    #debug-controls button {
+      background: #2a2a2a; color: #bbb; border: 1px solid #333;
+      padding: 3px 8px; border-radius: 3px;
+      font-family: inherit; font-size: 10px;
     }
   </style>
 </head>
 <body>
   <div id="init">
     <div class="lambda">λ</div>
-    <h2>ClojureScript REPL</h2>
-    <div class="subtitle">Eerste keer opstarten — ClojureScript wordt nu gedownload en opgeslagen voor offline gebruik.</div>
+    <h2>ClojureScript REPL — DEBUG</h2>
+    <div class="subtitle">Debug versie met uitgebreide logging.</div>
     <div class="stage" id="stage">Voorbereiden…</div>
     <div id="progress-wrap"><div id="progress"></div></div>
     <div id="progress-text"></div>
@@ -160,7 +176,7 @@
   </div>
 
   <header>
-    <h1>λ ClojureScript REPL</h1>
+    <h1>λ CLJS REPL (DEBUG)</h1>
     <div class="actions">
       <span id="status">…</span>
       <button onclick="clearOutput()">Wis</button>
@@ -168,34 +184,79 @@
   </header>
 
   <div class="toolbar">
-    <button onclick="insertSnippet('(+ 1 2 3)')">(+ 1 2 3)</button>
+    <button onclick="insertSnippet('1')">1</button>
+    <button onclick="insertSnippet('(+ 1 2)')">(+ 1 2)</button>
     <button onclick="insertSnippet('(map inc [1 2 3])')">map</button>
-    <button onclick="insertSnippet('(reduce + (range 100))')">reduce</button>
-    <button onclick="insertSnippet('(defn square [x] (* x x))\n(square 7)')">defn</button>
-    <button onclick="insertSnippet('(filter odd? (range 10))')">filter</button>
-    <button onclick="insertSnippet('(->> (range 20)\n     (map inc)\n     (filter even?)\n     (take 5))')">threading</button>
-    <button onclick="insertSnippet('(for [x (range 3) y (range 3)] [x y])')">for</button>
-    <button onclick="insertSnippet('(reduce-kv (fn [m k v] (assoc m v k)) {} {:a 1 :b 2})')">reduce-kv</button>
+    <button onclick="insertSnippet('(range 5)')">range</button>
+    <button onclick="debugScittleAPI()">inspect API</button>
   </div>
 
+  <div class="panel-header">REPL output</div>
   <div id="output"></div>
 
+  <div class="panel-header">Debug log (belangrijk!)</div>
+  <div id="debug"></div>
+  <div id="debug-controls">
+    <button onclick="clearDebug()">wis log</button>
+    <button onclick="copyDebug()">kopieer log</button>
+    <button onclick="testRun()">test run()</button>
+  </div>
+
   <div id="input-area">
-    <textarea id="input" placeholder="(+ 1 2 3)" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false"></textarea>
-    <button id="run" onclick="evaluate()">Run</button>
+    <textarea id="input" placeholder="typ hier, bv. 1" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false"></textarea>
+    <button id="run">Run</button>
   </div>
 
   <script>
-    // ═══════════════════════════════════════════════════════════════
-    // Configuration
-    // ═══════════════════════════════════════════════════════════════
+    const debugEl = document.getElementById('debug');
+    const debugLog = [];
+
+    function dbg(msg, level = 'info') {
+      const ts = new Date().toISOString().substr(11, 12);
+      const line = document.createElement('div');
+      line.className = 'dbg-line';
+      const t = document.createElement('span');
+      t.className = 'dbg-time'; t.textContent = ts;
+      const m = document.createElement('span');
+      m.className = 'dbg-' + level; m.textContent = msg;
+      line.appendChild(t); line.appendChild(m);
+      debugEl.appendChild(line);
+      debugEl.scrollTop = debugEl.scrollHeight;
+      debugLog.push(`${ts} [${level}] ${msg}`);
+    }
+
+    function clearDebug() { debugEl.innerHTML = ''; debugLog.length = 0; }
+    function copyDebug() {
+      const text = debugLog.join('\n');
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(
+          () => dbg('Log gekopieerd', 'ok'),
+          (err) => dbg('Kopieer mislukt: ' + err, 'err')
+        );
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = text; document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); dbg('Log gekopieerd (legacy)', 'ok'); }
+        catch (e) { dbg('Kopieer mislukt', 'err'); }
+        document.body.removeChild(ta);
+      }
+    }
+
+    window.addEventListener('error', (e) => {
+      dbg('GLOBAL ERROR: ' + e.message + ' @ line ' + e.lineno, 'err');
+    });
+    window.addEventListener('unhandledrejection', (e) => {
+      dbg('UNHANDLED REJECTION: ' + (e.reason && e.reason.message || e.reason), 'err');
+    });
+
+    dbg('Debug versie gestart', 'info');
+    dbg('UA: ' + navigator.userAgent.substr(0, 70), 'info');
+
     const SCITTLE_VERSION = '0.8.31';
     const SCITTLE_URL = `https://cdn.jsdelivr.net/npm/scittle@${SCITTLE_VERSION}/dist/scittle.min.js`;
     const CACHE_NAME = 'cljs-repl-assets-v1';
 
-    // ═══════════════════════════════════════════════════════════════
-    // UI refs
-    // ═══════════════════════════════════════════════════════════════
     const initScreen = document.getElementById('init');
     const stageEl = document.getElementById('stage');
     const progressEl = document.getElementById('progress');
@@ -204,9 +265,10 @@
     const retryBtn = document.getElementById('retry');
     const output = document.getElementById('output');
     const input = document.getElementById('input');
+    const runBtn = document.getElementById('run');
     const statusEl = document.getElementById('status');
 
-    function setStage(text) { stageEl.textContent = text; }
+    function setStage(text) { stageEl.textContent = text; dbg('stage: ' + text); }
     function setProgress(pct, text) {
       progressEl.style.width = pct + '%';
       if (text !== undefined) progressText.textContent = text;
@@ -223,29 +285,13 @@
       progressEl.style.background = '#5fb3b3';
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // Network status
-    // ═══════════════════════════════════════════════════════════════
     function updateStatus(suffix) {
-      if (suffix === 'cached') {
-        statusEl.textContent = 'offline-ready';
-        statusEl.className = 'cached';
-      } else if (navigator.onLine) {
-        statusEl.textContent = 'online';
-        statusEl.className = 'online';
-      } else {
-        statusEl.textContent = 'offline';
-        statusEl.className = 'offline';
-      }
+      if (suffix === 'cached') { statusEl.textContent = 'offline-ready'; statusEl.className = 'cached'; }
+      else if (navigator.onLine) { statusEl.textContent = 'online'; statusEl.className = 'online'; }
+      else { statusEl.textContent = 'offline'; statusEl.className = 'offline'; }
     }
     window.addEventListener('online', () => updateStatus());
     window.addEventListener('offline', () => updateStatus());
-
-    // ═══════════════════════════════════════════════════════════════
-    // REPL core
-    // ═══════════════════════════════════════════════════════════════
-    const history = [];
-    let historyIdx = -1;
 
     function addLine(text, className = 'line') {
       const div = document.createElement('div');
@@ -257,71 +303,130 @@
 
     function clearOutput() {
       output.innerHTML = '';
-      addLine('ClojureScript REPL — type expressies hieronder', 'info');
-      addLine('Tip: Cmd/Ctrl + Enter om te evalueren, pijltje omhoog voor geschiedenis', 'info');
+      addLine('REPL klaar. Typ iets en druk Run.', 'info');
     }
 
     function insertSnippet(code) {
       input.value = code;
-      input.focus();
       autoResize();
+      dbg('snippet: ' + code);
     }
 
     function autoResize() {
       input.style.height = 'auto';
-      input.style.height = Math.min(input.scrollHeight, 140) + 'px';
+      input.style.height = Math.min(input.scrollHeight, 120) + 'px';
     }
 
     input.addEventListener('input', autoResize);
+
+    function debugScittleAPI() {
+      dbg('─── Scittle API inspectie ───', 'info');
+      if (typeof scittle === 'undefined') {
+        dbg('scittle = UNDEFINED', 'err'); return;
+      }
+      dbg('typeof scittle = ' + typeof scittle, 'ok');
+      const topKeys = Object.keys(scittle);
+      dbg('top-level keys: ' + topKeys.join(', '), 'info');
+      if (scittle.core) {
+        const coreKeys = Object.keys(scittle.core);
+        dbg('scittle.core: ' + coreKeys.length + ' keys', 'info');
+        const probes = ['eval_string','eval-string','evalString',
+                        'pr_str','pr-str','prStr',
+                        'eval_script_tags'];
+        probes.forEach(k => {
+          const v = scittle.core[k];
+          if (v !== undefined) dbg('  ✓ scittle.core["' + k + '"] = ' + typeof v, 'ok');
+        });
+        // Show first N keys
+        dbg('eerste 30: ' + coreKeys.slice(0, 30).join(', '), 'info');
+      } else {
+        dbg('scittle.core ontbreekt', 'err');
+      }
+    }
+
+    function evaluate() {
+      dbg('evaluate() called', 'info');
+      const code = input.value.trim();
+      dbg('code: "' + code + '" (len=' + code.length + ')', 'info');
+      if (!code) { dbg('leeg', 'warn'); return; }
+
+      addLine('=> ' + code, 'input-line');
+
+      if (typeof scittle === 'undefined') {
+        dbg('scittle undefined!', 'err');
+        addLine('Error: scittle is undefined', 'error'); return;
+      }
+      if (!scittle.core) {
+        dbg('scittle.core mist!', 'err');
+        addLine('Error: scittle.core ontbreekt', 'error'); return;
+      }
+
+      const evalFn = scittle.core.eval_string
+                  || scittle.core['eval-string']
+                  || scittle.core.evalString;
+      if (!evalFn) {
+        dbg('geen eval functie gevonden', 'err');
+        addLine('Error: eval functie niet gevonden, tap "inspect API"', 'error');
+        return;
+      }
+      dbg('eval fn: ' + (scittle.core.eval_string ? 'eval_string' :
+           (scittle.core['eval-string'] ? 'eval-string' : 'evalString')), 'ok');
+
+      try {
+        dbg('evalueren…', 'info');
+        const result = evalFn.call(scittle.core, code);
+        dbg('resultaat type: ' + typeof result, 'info');
+
+        const prFn = scittle.core.pr_str || scittle.core['pr-str'] || scittle.core.prStr;
+        let printed;
+        if (prFn) {
+          try { printed = prFn.call(scittle.core, result); dbg('pr_str ok', 'ok'); }
+          catch (e) { dbg('pr_str fail: ' + e.message, 'warn'); printed = String(result); }
+        } else {
+          dbg('geen pr_str, String() gebruikt', 'warn');
+          printed = String(result);
+        }
+        dbg('→ ' + printed, 'ok');
+        addLine(printed, 'result');
+      } catch (err) {
+        dbg('EVAL ERROR: ' + (err.message || err), 'err');
+        addLine('Error: ' + (err.message || String(err)), 'error');
+      }
+    }
+
+    runBtn.addEventListener('click', (e) => {
+      dbg('Run: click', 'info');
+      e.preventDefault();
+      evaluate();
+    });
+    runBtn.addEventListener('touchend', (e) => {
+      dbg('Run: touchend', 'info');
+      e.preventDefault();
+      evaluate();
+    });
+
     input.addEventListener('keydown', (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
         e.preventDefault();
         evaluate();
-      } else if (e.key === 'ArrowUp' && input.value === '' && history.length > 0) {
-        e.preventDefault();
-        historyIdx = Math.max(0, historyIdx - 1);
-        input.value = history[historyIdx] || '';
-        autoResize();
-      } else if (e.key === 'ArrowDown' && historyIdx >= 0) {
-        e.preventDefault();
-        historyIdx = Math.min(history.length, historyIdx + 1);
-        input.value = history[historyIdx] || '';
-        autoResize();
       }
     });
 
-    function evaluate() {
-      const code = input.value.trim();
-      if (!code) return;
-      addLine('=> ' + code, 'input-line');
-      history.push(code);
-      historyIdx = history.length;
-      try {
-        const result = scittle.core.eval_string(code);
-        let printed;
-        try { printed = scittle.core.pr_str(result); }
-        catch (_) { printed = String(result); }
-        addLine(printed, 'result');
-      } catch (err) {
-        addLine('Error: ' + (err.message || String(err)), 'error');
-      }
-      input.value = '';
-      autoResize();
-      input.focus();
+    function testRun() {
+      dbg('─── testRun ───', 'info');
+      input.value = '(+ 1 2 3)';
+      evaluate();
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // Init fase — download Scittle met progress, cache permanent
-    // ═══════════════════════════════════════════════════════════════
     async function downloadWithProgress(url, onProgress) {
+      dbg('fetch: ' + url, 'info');
       const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status} — ${response.statusText}`);
-      }
-      const contentLength = response.headers.get('content-length');
-      const total = contentLength ? parseInt(contentLength, 10) : 0;
+      dbg('status: ' + response.status, response.ok ? 'ok' : 'err');
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const cl = response.headers.get('content-length');
+      const total = cl ? parseInt(cl, 10) : 0;
+      dbg('content-length: ' + (total || 'onbekend'), 'info');
 
-      // If no Content-Length, just wait for the blob
       if (!total || !response.body || !response.body.getReader) {
         onProgress(null, 0);
         const blob = await response.blob();
@@ -349,39 +454,44 @@
     }
 
     async function getCachedScittle() {
-      if (!('caches' in window)) return null;
+      if (!('caches' in window)) { dbg('geen Cache API', 'warn'); return null; }
       try {
         const cache = await caches.open(CACHE_NAME);
         const res = await cache.match(SCITTLE_URL);
+        dbg('cache: ' + (res ? 'HIT' : 'miss'), res ? 'ok' : 'info');
         return res || null;
-      } catch { return null; }
+      } catch (e) { dbg('cache err: ' + e.message, 'err'); return null; }
     }
 
     async function cacheScittle(blob) {
       if (!('caches' in window)) return;
       try {
         const cache = await caches.open(CACHE_NAME);
-        const response = new Response(blob, {
-          headers: { 'Content-Type': 'application/javascript' }
-        });
-        await cache.put(SCITTLE_URL, response);
-      } catch (err) {
-        console.warn('Cache put failed:', err);
-      }
+        await cache.put(SCITTLE_URL,
+          new Response(blob, { headers: { 'Content-Type': 'application/javascript' } }));
+        dbg('cached ok', 'ok');
+      } catch (err) { dbg('cache put fail: ' + err.message, 'err'); }
     }
 
     function executeScript(code) {
       return new Promise((resolve, reject) => {
+        dbg('script injecteren (' + formatBytes(code.length) + ')', 'info');
         try {
           const script = document.createElement('script');
           script.textContent = code;
           document.head.appendChild(script);
-          if (typeof scittle !== 'undefined' && scittle.core) {
-            resolve();
-          } else {
-            reject(new Error('Scittle niet geladen na uitvoeren van script'));
-          }
+          setTimeout(() => {
+            if (typeof scittle !== 'undefined' && scittle.core) {
+              dbg('scittle loaded ✓', 'ok');
+              resolve();
+            } else {
+              dbg('scittle NIET geladen na injectie', 'err');
+              dbg('typeof scittle: ' + typeof scittle, 'err');
+              reject(new Error('Scittle niet geladen'));
+            }
+          }, 50);
         } catch (err) {
+          dbg('injectie fail: ' + err.message, 'err');
           reject(err);
         }
       });
@@ -390,9 +500,7 @@
     async function initApp() {
       hideError();
       setProgress(0, '');
-
       try {
-        // Stage 1: check cache
         setStage('Cache controleren…');
         setProgress(5);
         const cached = await getCachedScittle();
@@ -400,62 +508,52 @@
 
         if (cached) {
           setStage('Uit cache laden…');
-          setProgress(40, 'offline versie gevonden');
+          setProgress(40, 'offline beschikbaar');
           scittleCode = await cached.text();
+          dbg('cache load: ' + formatBytes(scittleCode.length), 'ok');
           setProgress(70);
         } else {
-          if (!navigator.onLine) {
-            throw new Error('Geen internetverbinding. De eerste keer moet je online zijn om ClojureScript te downloaden (~2 MB). Daarna werkt alles offline.');
-          }
-          setStage('ClojureScript downloaden…');
-          setProgress(5, 'verbinden met CDN');
-
+          if (!navigator.onLine) throw new Error('Geen internet. Eerste keer vereist online verbinding.');
+          setStage('Downloaden…');
           const blob = await downloadWithProgress(SCITTLE_URL, (pct, bytes) => {
-            if (pct !== null) {
-              const displayPct = 5 + Math.round(pct * 55); // 5 → 60%
-              setProgress(displayPct, formatBytes(bytes));
-            } else {
-              setProgress(30, formatBytes(bytes));
-            }
+            if (pct !== null) setProgress(5 + Math.round(pct * 55), formatBytes(bytes));
+            else setProgress(30, formatBytes(bytes));
           });
-
-          setStage('Opslaan voor offline gebruik…');
-          setProgress(65, formatBytes(blob.size));
+          dbg('download: ' + formatBytes(blob.size), 'ok');
+          setStage('Opslaan…');
+          setProgress(65);
           await cacheScittle(blob);
           setProgress(70);
           scittleCode = await blob.text();
         }
 
-        // Stage 3: execute
-        setStage('ClojureScript activeren…');
+        setStage('Activeren…');
         setProgress(85);
         await executeScript(scittleCode);
+        debugScittleAPI();
 
-        // Stage 4: done
         setStage('Klaar!');
         setProgress(100);
         updateStatus('cached');
 
-        await new Promise(r => setTimeout(r, 300));
+        await new Promise(r => setTimeout(r, 400));
         initScreen.style.opacity = '0';
         initScreen.style.transition = 'opacity 0.3s';
         setTimeout(() => {
           initScreen.style.display = 'none';
           clearOutput();
-          addLine('Klaar! Probeer: (+ 1 2 3)', 'info');
-          input.focus();
         }, 300);
-
       } catch (err) {
-        console.error('Init failed:', err);
+        dbg('INIT FAIL: ' + err.message, 'err');
         setStage('Opstarten mislukt');
         showError(err.message || String(err));
       }
     }
 
-    // Register Service Worker for offline app shell
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
+      navigator.serviceWorker.register('sw.js')
+        .then(() => dbg('SW geregistreerd', 'ok'))
+        .catch((e) => dbg('SW fail: ' + e.message, 'warn'));
     }
 
     updateStatus();
